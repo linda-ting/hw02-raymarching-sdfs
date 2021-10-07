@@ -8,6 +8,8 @@ uniform float u_Time;
 in vec2 fs_Pos;
 out vec4 out_Col;
 
+#define CULL_RAY_LENGTH 0
+
 #define MAX_RAY_LENGTH 20.0
 #define MAX_RAY_MARCH_STEPS 500
 #define EPSILON 0.001
@@ -644,7 +646,9 @@ Intersection getRaymarchedIntersection(vec2 uv)
 
   for (int step = 0; step < MAX_RAY_MARCH_STEPS; ++step) {  
     vec3 queryPos = ray.origin + t * ray.direction;
+    #if CULL_RAY_LENGTH
     if (t > MAX_RAY_LENGTH) break;
+    #endif
     float dist = sceneSDF(queryPos, material_id);
 
     if (dist <= EPSILON) {
