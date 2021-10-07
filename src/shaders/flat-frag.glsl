@@ -70,7 +70,6 @@ out vec4 out_Col;
 #define WATER_CAP_ID 15
 #define CAN_ID 16
 #define ICE_CREAM_TUB_ID 17
-#define ICE_CREAM_CAP_ID 18
 
 struct Ray {
   vec3 origin;
