@@ -8,7 +8,7 @@ uniform float u_Time;
 in vec2 fs_Pos;
 out vec4 out_Col;
 
-#define CULL_RAY_LENGTH 0
+#define CULL_RAY_LENGTH 1
 
 #define MAX_RAY_LENGTH 20.0
 #define MAX_RAY_MARCH_STEPS 500
