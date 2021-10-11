@@ -18,6 +18,10 @@ out vec4 out_Col;
 #define FOV 45.0
 #define LIGHT_POS vec3(-12.0, 15.0, -15.0)
 
+#define WHITE_LIGHT vec3(1.0, 1.0, 1.0)
+#define YELLOW_LIGHT vec3(1.0, 0.9, 0.0)
+#define FILL_LIGHT vec3(0.7, 0.1, 0.2)
+
 #define BACK_WALL plane(rotateY(p, -30.0) + vec3(0, 0, -10), vec3(0, 0, -1), 1.0)
 #define FLOOR plane(p + vec3(0, 4, 10), vec3(0, 1, 0), 1.0)
 
@@ -27,9 +31,9 @@ out vec4 out_Col;
 #define TATA_FACE tataFace(p)
 #define TATA_MOUTH tataMouth(p)
 
-#define BOTTLE_1 sauceBottle(p, vec3(0, -30.0, 0), vec3(0.45, 1.65, -4))
-#define BOTTLE_2 sauceBottle(p, vec3(0, -30.0, 0), vec3(0.3, 1.65, -4.75))
-#define BOTTLE_3 sauceBottle(p, vec3(0, -30.0, 0), vec3(0.25, 1.65, -5.5))
+#define BOTTLE_1 sauceBottle(p, vec3(0, -30.0, 0), vec3(0.25, 1.65, -4))
+#define BOTTLE_2 sauceBottle(p, vec3(0, -30.0, 0), vec3(-0.05, 1.65, -4.75))
+#define BOTTLE_3 sauceBottle(p, vec3(0, -30.0, 0), vec3(-0.15, 1.65, -5.5))
 
 #define WATER_BOTTLE_1 waterBottle(p, vec3(0, 20.0, 0), vec3(-0.6, 4, -4.4))
 #define WATER_BOTTLE_2 waterBottle(p, vec3(0, 20.0, 0), vec3(0.6, 4, -4.4))
@@ -45,17 +49,22 @@ out vec4 out_Col;
 #define MILK_5 milk(p, vec3(0, -40.0, 0), vec3(-0.5, 4.3, -4.75))
 #define MILK_6 milk(p, vec3(0, -20.0, 0), vec3(-1.2, 4.3, -4.75))
 
-#define JUICE_BOX_1 juiceBox(p, vec3(0, -40.0, 0), vec3(2.2, 1.5, -3.75))
-#define JUICE_BOX_2 juiceBox(p, vec3(0, -30.0, 0), vec3(1.5, 1.5, -4.75))
-#define JUICE_BOX_3 juiceBox(p, vec3(0, -20.0, 0), vec3(0.5, 1.5, -5.75))
+#define JUICE_BOX_1 juiceBox(p, vec3(0, -40.0, 0), vec3(2.0, 1.5, -3.75))
+#define JUICE_BOX_2 juiceBox(p, vec3(0, -30.0, 0), vec3(1.3, 1.5, -4.75))
+#define JUICE_BOX_3 juiceBox(p, vec3(0, -20.0, 0), vec3(0.3, 1.5, -5.75))
 
-#define CAN_1 can(p, vec3(0, -30.0, 0), vec3(-0.8, 1.75, -4))
-#define CAN_2 can(p, vec3(0, -30.0, 0), vec3(-0.5, 1.75, -4.75))
+#define JUICE_BOX_TOP_1 juiceBoxTop(p, vec3(0, -40.0, 0), vec3(2.0, 1.5, -3.75))
+#define JUICE_BOX_TOP_2 juiceBoxTop(p, vec3(0, -30.0, 0), vec3(1.3, 1.5, -4.75))
+#define JUICE_BOX_TOP_3 juiceBoxTop(p, vec3(0, -20.0, 0), vec3(0.3, 1.5, -5.75))
+
+#define CAN_1 can(p, vec3(0, -30.0, 0), vec3(-1.2, 1.75, -4))
+#define CAN_2 can(p, vec3(0, -30.0, 0), vec3(-0.8, 1.75, -4.75))
 #define CAN_3 can(p + vec3(-2.3, -4.4, -4), vec3(10.0 + 30.0 * gain(sin(u_Time * 0.05), 0.15) - 100.0, -30, 0), vec3(0, 0.75, 0))
 #define CAN_4 can(p, vec3(0, 10, 90), vec3(-4.75, 0, 0))
 
-#define ICE_CREAM_1 iceCreamTub(p, vec3(0, -30, 0), vec3(-0.5, -1, -4.5))
+#define ICE_CREAM_1 iceCreamTub(p, vec3(0, -30, 0), vec3(1, -1, -4.5))
 
+#define NO_OBJECT_ID -1
 #define BACK_WALL_ID 1
 #define FLOOR_ID 2
 #define FRIDGE_ID 3
@@ -73,6 +82,7 @@ out vec4 out_Col;
 #define WATER_CAP_ID 15
 #define CAN_ID 16
 #define ICE_CREAM_TUB_ID 17
+#define JUICE_BOX_TOP_ID 18
 
 struct Ray {
   vec3 origin;
@@ -85,6 +95,12 @@ struct Intersection
   vec3 normal;
   float distance_t;
   int material_id;
+};
+
+struct DirectionalLight
+{
+  vec3 direction;
+  vec3 color;
 };
 
 float dot2(vec2 v) { return dot(v,v); }
@@ -295,6 +311,14 @@ float juiceBox(vec3 p, vec3 r, vec3 t) {
   vec3 pos = rotateYXZ(p, r) + t;
   float radius = 0.02;
   vec3 dimensions = vec3(0.4, 0.6, 0.25);
+  return roundBox(pos, dimensions, radius);
+}
+
+float juiceBoxTop(vec3 p, vec3 r, vec3 t) {
+  vec3 top_offset = vec3(0, -0.6, 0);
+  vec3 pos = rotateYXZ(p, r) + t + top_offset;
+  float radius = 0.02;
+  vec3 dimensions = vec3(0.42, 0.05, 0.27);
   return roundBox(pos, dimensions, radius);
 }
 
@@ -555,10 +579,25 @@ float sceneSDF(vec3 p, out int material_id) {
         material_id = TATA_FACE_ID;
       }
 
+      if ((t2 = JUICE_BOX_TOP_1) < t1) {
+        t1 = t2;
+        material_id = JUICE_BOX_TOP_ID;
+      }
+
+      if ((t2 = JUICE_BOX_TOP_2) < t1) {
+        t1 = t2;
+        material_id = JUICE_BOX_TOP_ID;
+      }
+
+      if ((t2 = JUICE_BOX_TOP_3) < t1) {
+        t1 = t2;
+        material_id = JUICE_BOX_TOP_ID;
+      }
+
       return t1;
   #if BOUNDING_SPHERE
     }
-  material_id = BACK_WALL_ID;
+  material_id = -1;
   return bounding_sphere_dist;
   #endif
 }
@@ -577,6 +616,9 @@ float sceneSDF(vec3 p) {
       t = min(t, JUICE_BOX_1);
       t = min(t, JUICE_BOX_2);
       t = min(t, JUICE_BOX_3);
+      t = min(t, JUICE_BOX_TOP_1);
+      t = min(t, JUICE_BOX_TOP_2);
+      t = min(t, JUICE_BOX_TOP_3);
       t = min(t, BOTTLE_1);
       t = min(t, BOTTLE_2);
       t = min(t, BOTTLE_3);
@@ -622,43 +664,74 @@ float getSpecularIntensity(Intersection i, float spec) {
   return pow(max(dot(i.normal, h), 0.0), spec);
 }
 
-vec3 getSceneColor(Intersection i) {
-  if (i.material_id == BACK_WALL_ID) {
-    return rgb(30, 50, 100) * getLambertIntensity(i);
-  } else if (i.material_id == FLOOR_ID) {
-    return rgb(30, 50, 100) * getLambertIntensity(i);
-  } else if (i.material_id == FRIDGE_ID) {
-    return rgb(20, 180, 255) * getSpecularIntensity(i, 2.4);
-  } else if (i.material_id == JUICE_WHITE_ID) {
-    return rgb(240, 240, 240) * getLambertIntensity(i);
-  } else if (i.material_id == JUICE_ORANGE_ID) {
-    return rgb(240, 180, 40) * getLambertIntensity(i);
-  } else if (i.material_id == BOTTLE_1_ID) {
-    return rgb(255, 190, 0) * getLambertIntensity(i);
-  } else if (i.material_id == BOTTLE_2_ID) {
-    return rgb(230, 100, 0) * getLambertIntensity(i);
-  } else if (i.material_id == BOTTLE_3_ID) {
-    return rgb(230, 20, 10) * getLambertIntensity(i);
-  } else if (i.material_id == WATER_BOTTLE_ID) {
-    return rgb(150, 240, 255) * getLambertIntensity(i);
-  } else if (i.material_id == TATA_HEAD_ID) {
-    return rgb(250, 40, 10) * getLambertIntensity(i);
-  } else if (i.material_id == TATA_BODY_ID) {
-    return rgb(80, 80, 250) * getLambertIntensity(i);
-  } else if (i.material_id == TATA_MOUTH_ID) {
-    return rgb(255, 190, 0) * getLambertIntensity(i);
-  } else if (i.material_id == TATA_FACE_ID) {
-    return rgb(10, 10, 10) * getLambertIntensity(i);
-  } else if (i.material_id == MILK_ID) {
-    return rgb(230, 230, 240) * getLambertIntensity(i);
-  } else if (i.material_id == WATER_CAP_ID) {
-    return rgb(100, 100, 100) * getSpecularIntensity(i, 1.0);
-  } else if (i.material_id == CAN_ID) {
-    return rgb(250, 20, 50) * getSpecularIntensity(i, 2.0);
-  } else if (i.material_id == ICE_CREAM_TUB_ID) {
-    return rgb(230, 200, 150) * getLambertIntensity(i);
+float softShadow(vec3 dir, vec3 origin, float min_t, float k) {
+  float res = 1.0;
+  float t = min_t;
+  for( int i = 0; i < 40; i++) {
+    float h = sceneSDF(origin + dir * t);
+    res = min(res, smoothstep(0.0, 1.0, k * h / t));
+    t += clamp(h, 0.01, 0.25);
+    if(res < 0.005 || t > 10.0) break;
   }
-  return vec3(0.0);
+  return clamp(res, 0.0, 1.0);
+}
+
+vec3 computeMaterial(Intersection i) {
+  DirectionalLight lights[3];
+  lights[0] = DirectionalLight(normalize(LIGHT_POS), WHITE_LIGHT);
+  lights[1] = DirectionalLight(normalize(vec3(5, 10, 4)), YELLOW_LIGHT);
+  lights[2] = DirectionalLight(normalize(vec3(-5, 0, -4)), FILL_LIGHT);
+
+  vec3 albedo = vec3(0);
+
+  if (i.material_id == NO_OBJECT_ID) {
+    return rgb(30, 50, 100);
+  } else if (i.material_id == BACK_WALL_ID) {
+    albedo = rgb(30, 50, 100) * getLambertIntensity(i);
+  } else if (i.material_id == FLOOR_ID) {
+    albedo = rgb(30, 50, 100) * getLambertIntensity(i);
+  } else if (i.material_id == FRIDGE_ID) {
+    albedo = rgb(30, 190, 255) * getSpecularIntensity(i, 1.4);
+  } else if (i.material_id == JUICE_WHITE_ID) {
+    albedo = rgb(240, 240, 240) * getLambertIntensity(i);
+  } else if (i.material_id == JUICE_ORANGE_ID) {
+    albedo = rgb(240, 180, 40) * getLambertIntensity(i);
+  } else if (i.material_id == BOTTLE_1_ID) {
+    albedo = rgb(255, 190, 0) * getSpecularIntensity(i, 0.7);
+  } else if (i.material_id == BOTTLE_2_ID) {
+    albedo = rgb(230, 100, 0) * getSpecularIntensity(i, 0.7);
+  } else if (i.material_id == BOTTLE_3_ID) {
+    albedo = rgb(230, 20, 10) * getSpecularIntensity(i, 0.7);
+  } else if (i.material_id == WATER_BOTTLE_ID) {
+    albedo = rgb(150, 240, 255) * getSpecularIntensity(i, 1.5);
+  } else if (i.material_id == TATA_HEAD_ID) {
+    albedo = rgb(250, 40, 10) * getLambertIntensity(i);
+  } else if (i.material_id == TATA_BODY_ID) {
+    albedo = rgb(80, 80, 250) * getLambertIntensity(i);
+  } else if (i.material_id == TATA_MOUTH_ID) {
+    albedo = rgb(255, 190, 0) * getLambertIntensity(i);
+  } else if (i.material_id == TATA_FACE_ID) {
+    albedo = rgb(10, 10, 10) * getLambertIntensity(i);
+  } else if (i.material_id == MILK_ID) {
+    albedo = rgb(230, 230, 200) * getLambertIntensity(i);
+  } else if (i.material_id == WATER_CAP_ID) {
+    albedo = rgb(100, 100, 100) * getSpecularIntensity(i, 2.0);
+  } else if (i.material_id == CAN_ID) {
+    albedo = rgb(250, 20, 50) * getSpecularIntensity(i, 4.0);
+  } else if (i.material_id == ICE_CREAM_TUB_ID) {
+    albedo = rgb(140, 70, 20) * getLambertIntensity(i);
+  } else if (i.material_id == JUICE_BOX_TOP_ID) {
+    albedo = rgb(240, 100, 30) * getLambertIntensity(i);
+  }
+
+  vec3 lightVec = LIGHT_POS - i.position;
+  float shadow = softShadow(normalize(lightVec), i.position, 0.001, 30.0);
+  vec3 color = albedo * lights[0].color * max(0.0, dot(i.normal, lights[0].direction)) * shadow;
+  for(int j = 1; j < 3; ++j) {
+    color += albedo * lights[j].color * max(0.0, dot(i.normal, lights[j].direction));
+  }
+  color = pow(color, vec3(1.0 / 1.2));
+  return color;
 }
 
 vec3 computeNormal(vec3 p) {
@@ -700,23 +773,11 @@ Intersection getRaymarchedIntersection(vec2 uv)
   return intersection;
 }
 
-float softShadow(vec3 dir, vec3 origin, float min_t, float k) {
-  float res = 1.0;
-  float t = min_t;
-  for( int i = 0; i < 40; i++) {
-    float h = sceneSDF(origin + dir * t);
-    res = min(res, smoothstep(0.0, 1.0, k * h / t));
-    t += clamp(h, 0.01, 0.25);
-    if(res < 0.005 || t > 10.0) break;
-  }
-  return clamp(res, 0.0, 1.0);
-}
-
 void main() {  
   Intersection i = getRaymarchedIntersection(fs_Pos);
   vec3 lightVec = LIGHT_POS - i.position;
   vec3 normal = i.normal;
-  vec4 diffuseColor = vec4(getSceneColor(i), 1.0);
-  float shadow = softShadow(normalize(lightVec), i.position, 0.001, 30.0);
-  out_Col = vec4(diffuseColor.rgb * shadow, 1.0);
+  vec4 color = vec4(computeMaterial(i), 1.0);
+  //float shadow = softShadow(normalize(lightVec), i.position, 0.001, 30.0);
+  out_Col = vec4(color.rgb, 1.0);
 }
