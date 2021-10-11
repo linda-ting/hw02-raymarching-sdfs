@@ -12,9 +12,11 @@ out vec4 out_Col;
 #define BOUNDING_SPHERE 1
 
 #define MAX_RAY_LENGTH 20.0
-#define MAX_RAY_MARCH_STEPS 500
+#define MAX_RAY_MARCH_STEPS 150
 #define EPSILON 0.001
+#define BOUNDING_SPHERE_EPSILON 0.35
 #define FOV 45.0
+#define LIGHT_POS vec3(-12.0, 15.0, -15.0)
 
 #define BACK_WALL plane(rotateY(p, -30.0) + vec3(0, 0, -10), vec3(0, 0, -1), 1.0)
 #define FLOOR plane(p + vec3(0, 4, 10), vec3(0, 1, 0), 1.0)
@@ -400,8 +402,8 @@ Ray getRay(vec2 uv) {
 // sdf used for coloring materials
 float sceneSDF(vec3 p, out int material_id) {
   #if BOUNDING_SPHERE
-    float sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
-    if(sphere_dist <= EPSILON) {
+    float bounding_sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
+    if(bounding_sphere_dist <= BOUNDING_SPHERE_EPSILON) {
       #endif
 
       float t1 = BACK_WALL;
@@ -557,15 +559,15 @@ float sceneSDF(vec3 p, out int material_id) {
   #if BOUNDING_SPHERE
     }
   material_id = BACK_WALL_ID;
-  return sphere_dist;
+  return bounding_sphere_dist;
   #endif
 }
 
 // sdf used for calculating normala
 float sceneSDF(vec3 p) {
   #if BOUNDING_SPHERE
-    float sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
-    if(sphere_dist <= EPSILON) {
+    float bounding_sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
+    if(bounding_sphere_dist <= BOUNDING_SPHERE_EPSILON) {
       #endif
 
       float t = BACK_WALL;
@@ -602,49 +604,59 @@ float sceneSDF(vec3 p) {
 
   #if BOUNDING_SPHERE
     }
-  return sphere_dist;
+  return bounding_sphere_dist;
   #endif
+}
+
+float getLambertIntensity(Intersection i) {
+  vec3 lightVec = normalize(LIGHT_POS - i.position);
+  float diffuseTerm = dot(i.normal, lightVec);
+  float ambientTerm = 0.2;
+  return diffuseTerm + ambientTerm;  
+}
+
+float getSpecularIntensity(Intersection i, float spec) {
+  vec3 lightVec = normalize(LIGHT_POS - i.position);
+  vec3 viewVec = normalize(u_Eye - i.position);
+  vec3 h = (lightVec + viewVec) / 2.0;
+  return pow(max(dot(i.normal, h), 0.0), spec);
 }
 
 vec3 getSceneColor(Intersection i) {
   if (i.material_id == BACK_WALL_ID) {
-    return rgb(30, 50, 100);
+    return rgb(30, 50, 100) * getLambertIntensity(i);
   } else if (i.material_id == FLOOR_ID) {
-    return rgb(30, 50, 100);
+    return rgb(30, 50, 100) * getLambertIntensity(i);
   } else if (i.material_id == FRIDGE_ID) {
-    return rgb(10, 170, 250);
+    return rgb(20, 180, 255) * getSpecularIntensity(i, 2.4);
   } else if (i.material_id == JUICE_WHITE_ID) {
-    return rgb(240, 240, 240);
+    return rgb(240, 240, 240) * getLambertIntensity(i);
   } else if (i.material_id == JUICE_ORANGE_ID) {
-    return rgb(240, 180, 40);
+    return rgb(240, 180, 40) * getLambertIntensity(i);
   } else if (i.material_id == BOTTLE_1_ID) {
-    return rgb(255, 190, 0);
-  } else if (i.material_id == BOTTLE_1_ID) {
-    return rgb(255, 190, 0);
-  } else if (i.material_id == BOTTLE_1_ID) {
-    return rgb(255, 190, 0);
+    return rgb(255, 190, 0) * getLambertIntensity(i);
   } else if (i.material_id == BOTTLE_2_ID) {
-    return rgb(230, 100, 0);
+    return rgb(230, 100, 0) * getLambertIntensity(i);
   } else if (i.material_id == BOTTLE_3_ID) {
-    return rgb(230, 20, 10);
+    return rgb(230, 20, 10) * getLambertIntensity(i);
   } else if (i.material_id == WATER_BOTTLE_ID) {
-    return rgb(150, 240, 255);
+    return rgb(150, 240, 255) * getLambertIntensity(i);
   } else if (i.material_id == TATA_HEAD_ID) {
-    return rgb(250, 40, 10);
+    return rgb(250, 40, 10) * getLambertIntensity(i);
   } else if (i.material_id == TATA_BODY_ID) {
-    return rgb(80, 80, 250);
+    return rgb(80, 80, 250) * getLambertIntensity(i);
   } else if (i.material_id == TATA_MOUTH_ID) {
-    return rgb(255, 190, 0);
+    return rgb(255, 190, 0) * getLambertIntensity(i);
   } else if (i.material_id == TATA_FACE_ID) {
-    return rgb(10, 10, 10);
+    return rgb(10, 10, 10) * getLambertIntensity(i);
   } else if (i.material_id == MILK_ID) {
-    return rgb(230, 230, 240);
+    return rgb(230, 230, 240) * getLambertIntensity(i);
   } else if (i.material_id == WATER_CAP_ID) {
-    return rgb(100, 100, 100);
+    return rgb(100, 100, 100) * getSpecularIntensity(i, 1.0);
   } else if (i.material_id == CAN_ID) {
-    return rgb(250, 20, 50);
+    return rgb(250, 20, 50) * getSpecularIntensity(i, 2.0);
   } else if (i.material_id == ICE_CREAM_TUB_ID) {
-    return rgb(230, 200, 150);
+    return rgb(230, 200, 150) * getLambertIntensity(i);
   }
   return vec3(0.0);
 }
@@ -688,33 +700,23 @@ Intersection getRaymarchedIntersection(vec2 uv)
   return intersection;
 }
 
-float softShadow(vec3 dir, vec3 origin, float min_t, float max_t, float k) {
-  //float res = 1.0;
-  for(float t = min_t; t < max_t;) {
-    float m = sceneSDF(origin + t * dir);
-    if(m < EPSILON) {
-      return 0.0;
-    }
-    //res = min(res, k * m / t);
-    t += m;
+float softShadow(vec3 dir, vec3 origin, float min_t, float k) {
+  float res = 1.0;
+  float t = min_t;
+  for( int i = 0; i < 40; i++) {
+    float h = sceneSDF(origin + dir * t);
+    res = min(res, smoothstep(0.0, 1.0, k * h / t));
+    t += clamp(h, 0.01, 0.25);
+    if(res < 0.005 || t > 10.0) break;
   }
-  return 1.0;
+  return clamp(res, 0.0, 1.0);
 }
 
-void main() {
-  float time = 0.03 * u_Time;
-  vec3 lightPos = vec3(-12.0, 15.0, -15.0); //+ 10.0 * vec3(cos(time), sin(time), 0);
-
+void main() {  
   Intersection i = getRaymarchedIntersection(fs_Pos);
-  vec3 lightVec = lightPos - i.position;
+  vec3 lightVec = LIGHT_POS - i.position;
   vec3 normal = i.normal;
   vec4 diffuseColor = vec4(getSceneColor(i), 1.0);
-
-  float diffuseTerm = dot(normal, normalize(lightVec));
-  diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);
-  float ambientTerm = 0.2;
-  float lightIntensity = diffuseTerm + ambientTerm;  
-  float shadow = softShadow(normalize(lightVec), i.position, 0.01, length(lightVec), 20.0);
-
-  out_Col = vec4(diffuseColor.rgb * lightIntensity * shadow, diffuseColor.a);
+  float shadow = softShadow(normalize(lightVec), i.position, 0.001, 30.0);
+  out_Col = vec4(diffuseColor.rgb * shadow, 1.0);
 }
