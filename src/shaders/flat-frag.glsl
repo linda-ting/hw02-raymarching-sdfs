@@ -8,7 +8,8 @@ uniform float u_Time;
 in vec2 fs_Pos;
 out vec4 out_Col;
 
-#define CULL_RAY_LENGTH 0
+#define CULL_RAY_LENGTH 1
+#define BOUNDING_SPHERE 1
 
 #define MAX_RAY_LENGTH 20.0
 #define MAX_RAY_MARCH_STEPS 500
@@ -398,191 +399,211 @@ Ray getRay(vec2 uv) {
 
 // sdf used for coloring materials
 float sceneSDF(vec3 p, out int material_id) {
-  float t1 = BACK_WALL;
+  #if BOUNDING_SPHERE
+    float sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
+    if(sphere_dist <= EPSILON) {
+      #endif
+
+      float t1 = BACK_WALL;
+      material_id = BACK_WALL_ID;
+      float t2;
+
+      if ((t2 = FLOOR) < t1) {
+        t1 = t2;
+        material_id = FLOOR_ID;
+      }
+
+      if ((t2 = FRIDGE) < t1) {
+        t1 = t2;
+        material_id = FRIDGE_ID;
+      }
+
+      if ((t2 = ICE_CREAM_1) < t1) {
+        t1 = t2;
+        material_id = ICE_CREAM_TUB_ID;
+      }
+
+      if ((t2 = JUICE_BOX_1) < t1) {
+        t1 = t2;
+        material_id = JUICE_WHITE_ID;
+      }
+
+      if ((t2 = JUICE_BOX_2) < t1) {
+        t1 = t2;
+        material_id = JUICE_WHITE_ID;
+      }
+
+      if ((t2 = JUICE_BOX_3) < t1) {
+        t1 = t2;
+        material_id = JUICE_WHITE_ID;
+      }
+
+      if ((t2 = BOTTLE_1) < t1) {
+        t1 = t2;
+        material_id = BOTTLE_1_ID;
+      }
+
+      if ((t2 = BOTTLE_2) < t1) {
+        t1 = t2;
+        material_id = BOTTLE_2_ID;
+      }
+
+      if ((t2 = BOTTLE_3) < t1) {
+        t1 = t2;
+        material_id = BOTTLE_3_ID;
+      }
+
+      if ((t2 = MILK_1) < t1) {
+        t1 = t2;
+        material_id = MILK_ID;
+      }
+
+      if ((t2 = MILK_2) < t1) {
+        t1 = t2;
+        material_id = MILK_ID;
+      }
+
+      if ((t2 = MILK_3) < t1) {
+        t1 = t2;
+        material_id = MILK_ID;
+      }
+
+      if ((t2 = MILK_4) < t1) {
+        t1 = t2;
+        material_id = MILK_ID;
+      }
+
+      if ((t2 = MILK_5) < t1) {
+        t1 = t2;
+        material_id = MILK_ID;
+      }
+
+      if ((t2 = MILK_6) < t1) {
+        t1 = t2;
+        material_id = MILK_ID;
+      }
+
+      if ((t2 = CAN_1) < t1) {
+        t1 = t2;
+        material_id = CAN_ID;
+      }
+
+      if ((t2 = CAN_2) < t1) {
+        t1 = t2;
+        material_id = CAN_ID;
+      }
+
+      if ((t2 = CAN_4) < t1) {
+        t1 = t2;
+        material_id = CAN_ID;
+      }
+
+      if ((t2 = WATER_BOTTLE_1) < t1) {
+        t1 = t2;
+        material_id = WATER_BOTTLE_ID;
+      }
+
+      if ((t2 = WATER_BOTTLE_2) < t1) {
+        t1 = t2;
+        material_id = WATER_BOTTLE_ID;
+      }
+
+      if ((t2 = WATER_BOTTLE_3) < t1) {
+        t1 = t2;
+        material_id = WATER_BOTTLE_ID;
+      }
+
+      if ((t2 = WATER_CAP_1) < t1) {
+        t1 = t2;
+        material_id = WATER_CAP_ID;
+      }
+
+      if ((t2 = WATER_CAP_2) < t1) {
+        t1 = t2;
+        material_id = WATER_CAP_ID;
+      }
+
+      if ((t2 = WATER_CAP_3) < t1) {
+        t1 = t2;
+        material_id = WATER_CAP_ID;
+      }
+
+      if((t2 = CAN_3) < t1) {
+        t1 = t2;
+        material_id = CAN_ID;
+      }
+
+      if ((t2 = TATA_HEAD) < t1) {
+        t1 = t2;
+        material_id = TATA_HEAD_ID;
+      }
+
+      if ((t2 = TATA_BODY) < t1) {
+        t1 = t2;
+        material_id = TATA_BODY_ID;
+      }
+
+      if ((t2 = TATA_MOUTH) < t1) {
+        t1 = t2;
+        material_id = TATA_MOUTH_ID;
+      }
+
+      if ((t2 = TATA_FACE) < t1) {
+        t1 = t2;
+        material_id = TATA_FACE_ID;
+      }
+
+      return t1;
+  #if BOUNDING_SPHERE
+    }
   material_id = BACK_WALL_ID;
-  float t2;
-
-  if ((t2 = FLOOR) < t1) {
-    t1 = t2;
-    material_id = FLOOR_ID;
-  }
-
-  if ((t2 = FRIDGE) < t1) {
-    t1 = t2;
-    material_id = FRIDGE_ID;
-  }
-
-  if ((t2 = ICE_CREAM_1) < t1) {
-    t1 = t2;
-    material_id = ICE_CREAM_TUB_ID;
-  }
-
-  if ((t2 = JUICE_BOX_1) < t1) {
-    t1 = t2;
-    material_id = JUICE_WHITE_ID;
-  }
-
-  if ((t2 = JUICE_BOX_2) < t1) {
-    t1 = t2;
-    material_id = JUICE_WHITE_ID;
-  }
-
-  if ((t2 = JUICE_BOX_3) < t1) {
-    t1 = t2;
-    material_id = JUICE_WHITE_ID;
-  }
-
-  if ((t2 = BOTTLE_1) < t1) {
-    t1 = t2;
-    material_id = BOTTLE_1_ID;
-  }
-
-  if ((t2 = BOTTLE_2) < t1) {
-    t1 = t2;
-    material_id = BOTTLE_2_ID;
-  }
-
-  if ((t2 = BOTTLE_3) < t1) {
-    t1 = t2;
-    material_id = BOTTLE_3_ID;
-  }
-
-  if ((t2 = MILK_1) < t1) {
-    t1 = t2;
-    material_id = MILK_ID;
-  }
-
-  if ((t2 = MILK_2) < t1) {
-    t1 = t2;
-    material_id = MILK_ID;
-  }
-
-  if ((t2 = MILK_3) < t1) {
-    t1 = t2;
-    material_id = MILK_ID;
-  }
-
-  if ((t2 = MILK_4) < t1) {
-    t1 = t2;
-    material_id = MILK_ID;
-  }
-
-  if ((t2 = MILK_5) < t1) {
-    t1 = t2;
-    material_id = MILK_ID;
-  }
-
-  if ((t2 = MILK_6) < t1) {
-    t1 = t2;
-    material_id = MILK_ID;
-  }
-
-  if ((t2 = CAN_1) < t1) {
-    t1 = t2;
-    material_id = CAN_ID;
-  }
-
-  if ((t2 = CAN_2) < t1) {
-    t1 = t2;
-    material_id = CAN_ID;
-  }
-
-  if ((t2 = CAN_4) < t1) {
-    t1 = t2;
-    material_id = CAN_ID;
-  }
-
-  if ((t2 = WATER_BOTTLE_1) < t1) {
-    t1 = t2;
-    material_id = WATER_BOTTLE_ID;
-  }
-
-  if ((t2 = WATER_BOTTLE_2) < t1) {
-    t1 = t2;
-    material_id = WATER_BOTTLE_ID;
-  }
-
-  if ((t2 = WATER_BOTTLE_3) < t1) {
-    t1 = t2;
-    material_id = WATER_BOTTLE_ID;
-  }
-
-  if ((t2 = WATER_CAP_1) < t1) {
-    t1 = t2;
-    material_id = WATER_CAP_ID;
-  }
-
-  if ((t2 = WATER_CAP_2) < t1) {
-    t1 = t2;
-    material_id = WATER_CAP_ID;
-  }
-
-  if ((t2 = WATER_CAP_3) < t1) {
-    t1 = t2;
-    material_id = WATER_CAP_ID;
-  }
-
-  if((t2 = CAN_3) < t1) {
-    t1 = t2;
-    material_id = CAN_ID;
-  }
-
-  if ((t2 = TATA_HEAD) < t1) {
-    t1 = t2;
-    material_id = TATA_HEAD_ID;
-  }
-
-  if ((t2 = TATA_BODY) < t1) {
-    t1 = t2;
-    material_id = TATA_BODY_ID;
-  }
-
-  if ((t2 = TATA_MOUTH) < t1) {
-    t1 = t2;
-    material_id = TATA_MOUTH_ID;
-  }
-
-  if ((t2 = TATA_FACE) < t1) {
-    t1 = t2;
-    material_id = TATA_FACE_ID;
-  }
-
-  return t1;
+  return sphere_dist;
+  #endif
 }
 
 // sdf used for calculating normala
 float sceneSDF(vec3 p) {
-  float t = BACK_WALL;
-  t = min(t, FLOOR);
-  t = min(t, FRIDGE);
-  t = min(t, ICE_CREAM_1);
-  t = min(t, JUICE_BOX_1);
-  t = min(t, JUICE_BOX_2);
-  t = min(t, JUICE_BOX_3);
-  t = min(t, BOTTLE_1);
-  t = min(t, BOTTLE_2);
-  t = min(t, BOTTLE_3);
-  t = min(t, MILK_1);
-  t = min(t, MILK_2);
-  t = min(t, MILK_3);
-  t = min(t, MILK_4);
-  t = min(t, MILK_5);
-  t = min(t, MILK_6);
-  t = min(t, WATER_BOTTLE_1);
-  t = min(t, WATER_BOTTLE_2);
-  t = min(t, WATER_BOTTLE_3);
-  t = min(t, WATER_CAP_1);
-  t = min(t, WATER_CAP_2);
-  t = min(t, WATER_CAP_3);
-  t = min(t, CAN_1);
-  t = min(t, CAN_2);
-  t = min(t, CAN_4);
-  t = min(t, CAN_3);
-  t = min(t, TATA_HEAD);
-  t = min(t, TATA_BODY);
-  t = min(t, TATA_MOUTH);
-  t = min(t, TATA_FACE);
-  return t;
+  #if BOUNDING_SPHERE
+    float sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
+    if(sphere_dist <= EPSILON) {
+      #endif
+
+      float t = BACK_WALL;
+      t = min(t, FLOOR);
+      t = min(t, FRIDGE);
+      t = min(t, ICE_CREAM_1);
+      t = min(t, JUICE_BOX_1);
+      t = min(t, JUICE_BOX_2);
+      t = min(t, JUICE_BOX_3);
+      t = min(t, BOTTLE_1);
+      t = min(t, BOTTLE_2);
+      t = min(t, BOTTLE_3);
+      t = min(t, MILK_1);
+      t = min(t, MILK_2);
+      t = min(t, MILK_3);
+      t = min(t, MILK_4);
+      t = min(t, MILK_5);
+      t = min(t, MILK_6);
+      t = min(t, WATER_BOTTLE_1);
+      t = min(t, WATER_BOTTLE_2);
+      t = min(t, WATER_BOTTLE_3);
+      t = min(t, WATER_CAP_1);
+      t = min(t, WATER_CAP_2);
+      t = min(t, WATER_CAP_3);
+      t = min(t, CAN_1);
+      t = min(t, CAN_2);
+      t = min(t, CAN_4);
+      t = min(t, CAN_3);
+      t = min(t, TATA_HEAD);
+      t = min(t, TATA_BODY);
+      t = min(t, TATA_MOUTH);
+      t = min(t, TATA_FACE);
+      return t;
+
+  #if BOUNDING_SPHERE
+    }
+  return sphere_dist;
+  #endif
 }
 
 vec3 getSceneColor(Intersection i) {
@@ -645,9 +666,11 @@ Intersection getRaymarchedIntersection(vec2 uv)
 
   for (int step = 0; step < MAX_RAY_MARCH_STEPS; ++step) {  
     vec3 queryPos = ray.origin + t * ray.direction;
+
     #if CULL_RAY_LENGTH
     if (t > MAX_RAY_LENGTH) break;
     #endif
+
     float dist = sceneSDF(queryPos, material_id);
 
     if (dist <= EPSILON) {
@@ -695,64 +718,3 @@ void main() {
 
   out_Col = vec4(diffuseColor.rgb * lightIntensity * shadow, diffuseColor.a);
 }
-
-// FROM BASE SHADERTOR
-/*float sceneSDF(vec3 queryPos) 
-{
-    return smin(sdfSphere(queryPos, vec3(0.0, 0.0, 0.0), 0.2),
-                sdfSphere(queryPos, vec3(cos(iTime) * 2.0, 0.0, 0.0), abs(cos(iTime))), 0.2);
-    
-}
-
-Ray getRay(vec2 uv)
-{
-    Ray r;
-    
-    vec3 look = normalize(ORIGIN - EYE);
-    vec3 camera_RIGHT = normalize(cross(look, WORLD_UP));
-    vec3 camera_UP = cross(camera_RIGHT, look);
-    
-    float aspect_ratio = iResolution.x / iResolution.y;
-    vec3 screen_vertical = camera_UP * tan(FOV); 
-    vec3 screen_horizontal = camera_RIGHT * aspect_ratio * tan(FOV);
-    vec3 screen_point = (look + uv.x * screen_horizontal + uv.y * screen_vertical);
-    
-    r.origin = EYE;
-    r.direction = normalize(screen_point - EYE);
-   
-    return r;
-}
-
-Intersection getRaymarchedIntersection(vec2 uv)
-{
-    Ray ray = getRay(uv);
-    Intersection intersection;
-    
-    intersection.distance_t = -1.0;
-    return intersection;
-}
-
-vec3 getSceneColor(vec2 uv)
-{
-    Intersection intersection = getRaymarchedIntersection(uv);
-    if (intersection.distance_t > 0.0)
-    {
-        return vec3(1.0f);
-     }
-     return vec3(0.0f);
-}
-
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = fragCoord/iResolution.xy;
-    
-    // Make symmetric [-1, 1]
-    uv = uv * 2.0 - 1.0;
-
-    // Time varying pixel color
-    vec3 col = getSceneColor(uv);
-
-    // Output to screen
-    fragColor = vec4(col,1.0);
-}*/
