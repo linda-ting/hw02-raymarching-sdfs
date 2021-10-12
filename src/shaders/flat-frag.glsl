@@ -19,8 +19,8 @@ out vec4 out_Col;
 #define LIGHT_POS vec3(-12.0, 15.0, -15.0)
 
 #define WHITE_LIGHT vec3(1.0, 1.0, 1.0)
-#define YELLOW_LIGHT vec3(1.0, 0.9, 0.0)
-#define FILL_LIGHT vec3(0.7, 0.1, 0.2)
+#define YELLOW_LIGHT vec3(13, 1.3, -1.5)
+#define FILL_LIGHT vec3(0.7, 0.0, 0.0)
 
 #define BACK_WALL plane(rotateY(p, -30.0) + vec3(0, 0, -10), vec3(0, 0, -1), 1.0)
 #define FLOOR plane(p + vec3(0, 4, 10), vec3(0, 1, 0), 1.0)
@@ -95,6 +95,7 @@ struct Intersection
   vec3 normal;
   float distance_t;
   int material_id;
+  bool object_hit;
 };
 
 struct DirectionalLight
@@ -426,7 +427,7 @@ Ray getRay(vec2 uv) {
 // sdf used for coloring materials
 float sceneSDF(vec3 p, out int material_id) {
   #if BOUNDING_SPHERE
-    float bounding_sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
+    float bounding_sphere_dist = sphere(p, 7.0, vec3(0, 0, 4));
     if(bounding_sphere_dist <= BOUNDING_SPHERE_EPSILON) {
       #endif
 
@@ -605,7 +606,7 @@ float sceneSDF(vec3 p, out int material_id) {
 // sdf used for calculating normala
 float sceneSDF(vec3 p) {
   #if BOUNDING_SPHERE
-    float bounding_sphere_dist = sphere(p, 7.0, vec3(0, 0, 2));
+    float bounding_sphere_dist = sphere(p, 7.0, vec3(0, 0, 4));
     if(bounding_sphere_dist <= BOUNDING_SPHERE_EPSILON) {
       #endif
 
@@ -680,18 +681,16 @@ vec3 computeMaterial(Intersection i) {
   DirectionalLight lights[3];
   lights[0] = DirectionalLight(normalize(LIGHT_POS), WHITE_LIGHT);
   lights[1] = DirectionalLight(normalize(vec3(5, 10, 4)), YELLOW_LIGHT);
-  lights[2] = DirectionalLight(normalize(vec3(-5, 0, -4)), FILL_LIGHT);
+  lights[2] = DirectionalLight(normalize(vec3(-10, 0, -4)), FILL_LIGHT);
 
   vec3 albedo = vec3(0);
 
-  if (i.material_id == NO_OBJECT_ID) {
-    return rgb(30, 50, 100);
-  } else if (i.material_id == BACK_WALL_ID) {
+  if (i.material_id == BACK_WALL_ID) {
     albedo = rgb(30, 50, 100) * getLambertIntensity(i);
   } else if (i.material_id == FLOOR_ID) {
-    albedo = rgb(30, 50, 100) * getLambertIntensity(i);
+    albedo = rgb(60, 130, 0) * getLambertIntensity(i);
   } else if (i.material_id == FRIDGE_ID) {
-    albedo = rgb(30, 190, 255) * getSpecularIntensity(i, 1.4);
+    albedo = rgb(40, 210, 255) * getSpecularIntensity(i, 1.4);
   } else if (i.material_id == JUICE_WHITE_ID) {
     albedo = rgb(240, 240, 240) * getLambertIntensity(i);
   } else if (i.material_id == JUICE_ORANGE_ID) {
@@ -730,7 +729,7 @@ vec3 computeMaterial(Intersection i) {
   for(int j = 1; j < 3; ++j) {
     color += albedo * lights[j].color * max(0.0, dot(i.normal, lights[j].direction));
   }
-  color = pow(color, vec3(1.0 / 1.2));
+  color = pow(color, vec3(1.0 / 1.4));
   return color;
 }
 
@@ -746,6 +745,7 @@ Intersection getRaymarchedIntersection(vec2 uv)
   Ray ray = getRay(uv);
   Intersection intersection;
   intersection.distance_t = -1.0;
+  intersection.object_hit = false;
   float t = EPSILON;
   int material_id;
 
@@ -764,6 +764,7 @@ Intersection getRaymarchedIntersection(vec2 uv)
       intersection.distance_t = dist;
       intersection.normal = computeNormal(queryPos);
       intersection.material_id = material_id;
+      intersection.object_hit = true;
       return intersection;
     }
 
@@ -775,9 +776,12 @@ Intersection getRaymarchedIntersection(vec2 uv)
 
 void main() {  
   Intersection i = getRaymarchedIntersection(fs_Pos);
-  vec3 lightVec = LIGHT_POS - i.position;
-  vec3 normal = i.normal;
-  vec4 color = vec4(computeMaterial(i), 1.0);
-  //float shadow = softShadow(normalize(lightVec), i.position, 0.001, 30.0);
-  out_Col = vec4(color.rgb, 1.0);
+  if (!i.object_hit) {
+    out_Col = vec4(rgb(10, 20, 50), 1.0);
+  } else {
+    vec3 lightVec = LIGHT_POS - i.position;
+    vec3 normal = i.normal;
+    vec4 color = vec4(computeMaterial(i), 1.0);
+    out_Col = vec4(color.rgb, 1.0);
+  }
 }
