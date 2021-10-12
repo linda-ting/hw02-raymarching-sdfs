@@ -3,7 +3,7 @@
 Linda Ting (lstting)
 
 ## Introduction
-This demo uses ray marching and signed distance functions to create a scene referenced from [here](https://twitter.com/bt21_/status/1151054299952119810)
+This project uses ray marching and signed distance functions to create a scene referenced from [here](https://twitter.com/bt21_/status/1151054299952119810). Live demo available [here](https://linda-ting.github.io/hw02-raymarching-sdfs/).
 
 SDF functions & operations referenced from [IQ](https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm)
 

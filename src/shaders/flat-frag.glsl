@@ -22,7 +22,6 @@ out vec4 out_Col;
 #define YELLOW_LIGHT vec3(13, 1.3, -1.5)
 #define FILL_LIGHT vec3(0.7, 0.0, 0.0)
 
-#define BACK_WALL plane(rotateY(p, -30.0) + vec3(0, 0, -10), vec3(0, 0, -1), 1.0)
 #define FLOOR plane(p + vec3(0, 4, 10), vec3(0, 1, 0), 1.0)
 
 #define FRIDGE fridge(p)
@@ -64,8 +63,6 @@ out vec4 out_Col;
 
 #define ICE_CREAM_1 iceCreamTub(p, vec3(0, -30, 0), vec3(1, -1, -4.5))
 
-#define NO_OBJECT_ID -1
-#define BACK_WALL_ID 1
 #define FLOOR_ID 2
 #define FRIDGE_ID 3
 #define JUICE_WHITE_ID 4
@@ -431,14 +428,9 @@ float sceneSDF(vec3 p, out int material_id) {
     if(bounding_sphere_dist <= BOUNDING_SPHERE_EPSILON) {
       #endif
 
-      float t1 = BACK_WALL;
-      material_id = BACK_WALL_ID;
+      float t1 = FLOOR;
+      material_id = FLOOR_ID;
       float t2;
-
-      if ((t2 = FLOOR) < t1) {
-        t1 = t2;
-        material_id = FLOOR_ID;
-      }
 
       if ((t2 = FRIDGE) < t1) {
         t1 = t2;
@@ -610,8 +602,7 @@ float sceneSDF(vec3 p) {
     if(bounding_sphere_dist <= BOUNDING_SPHERE_EPSILON) {
       #endif
 
-      float t = BACK_WALL;
-      t = min(t, FLOOR);
+      float t = FLOOR;
       t = min(t, FRIDGE);
       t = min(t, ICE_CREAM_1);
       t = min(t, JUICE_BOX_1);
@@ -685,9 +676,7 @@ vec3 computeMaterial(Intersection i) {
 
   vec3 albedo = vec3(0);
 
-  if (i.material_id == BACK_WALL_ID) {
-    albedo = rgb(30, 50, 100) * getLambertIntensity(i);
-  } else if (i.material_id == FLOOR_ID) {
+  if (i.material_id == FLOOR_ID) {
     albedo = rgb(60, 130, 0) * getLambertIntensity(i);
   } else if (i.material_id == FRIDGE_ID) {
     albedo = rgb(40, 210, 255) * getSpecularIntensity(i, 1.4);
